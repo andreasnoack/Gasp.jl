@@ -26,7 +26,7 @@ end
 nelems = ngranks()*5
 
 # create the array
-ga = Garray(Aelem, nelems)
+ga = GArray{Aelem}(nelems)
 @tst length(ga) == ngranks()*5
 # @tst elsize(ga) == sizeof(Aelem)+8
 
@@ -68,7 +68,7 @@ finalize(ga)
 # uneven distribution
 # ---
 nelems = nelems + Int(ceil(ngranks()/2))
-ga = Garray(Aelem, nelems)
+ga = GArray{Aelem}(nelems)
 
 # get the local part, write into it, and sync
 lo, hi = distribution(ga, grank())

@@ -7,7 +7,7 @@ enter_gc_safepoint() = ccall(:jl_gc_safe_enter, Int8, ())
 leave_gc_safepoint(gs) = ccall(:jl_gc_safe_leave, Void, (Int8,), gs)
 
 import Base.length, Base.get, Base.put!, Base.flush
-export Garray, GarrayMemoryHandle, Dtree, Dlog,
+export GArray, Dtree, Dlog,
        ngranks, grank, affinitize, message,
        sync, distribution, access, elemsize,
        initwork, getwork, runtree
@@ -67,7 +67,7 @@ function affinitize(avail_cores::Int,
     ccall(:jl_threading_run, Void, (Any,), Core.svec(set_thread_affinity))
 end
 
-include("Garray.jl")
+include("GArray.jl")
 include("Dtree.jl")
 include("Dlog.jl")
 

@@ -72,7 +72,7 @@ end
 
 # create the array
 nelems = ngranks() * 100
-ga = Garray(Aelem, sizeof(Aelem)+8, nelems)
+ga = GArray(Aelem, sizeof(Aelem)+8, nelems)
 
 # misc array functions
 @assert length(ga) == ngranks() * 100

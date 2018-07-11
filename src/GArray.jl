@@ -1,18 +1,18 @@
-mutable struct Garray{T}
+mutable struct GArray{T}
     ahandle::Ref{Ptr{Void}}
     access_arr::Vector{T}
 end
 
-function free!(ga::Garray)
+function free!(ga::GArray)
      ccall((:garray_destroy, libgasp), Void,
         (Ptr{Void},),
         ga.ahandle[])
      return nothing
 end
 
-function Garray(::Type{T}, num_elems::Int64) where T
+function (::Type{GArray{T}}){T}(num_elems::Int64)
     @assert isbits(T)
-    a = Garray{T}(Ref{Ptr{Void}}(), T[])
+    a = GArray{T}(Ref{Ptr{Void}}(), T[])
     r = ccall((:garray_create, libgasp), Cint,
         (Ptr{Void}, Int64, Int64, Ptr{Int64}, Ptr{Void}),
         ghandle[], num_elems, sizeof(T), C_NULL, a.ahandle)
@@ -23,11 +23,11 @@ function Garray(::Type{T}, num_elems::Int64) where T
     return a
 end
 
-function length(ga::Garray)
+function length(ga::GArray)
     ccall((:garray_length, libgasp), Int64, (Ptr{Void},), ga.ahandle[])
 end
 
-function get(ga::Garray{T}, lo::Int64, hi::Int64; buffer = Vector{T}(hi - lo + 1)) where T
+function get(ga::GArray{T}, lo::Int64, hi::Int64; buffer = Vector{T}(hi - lo + 1)) where T
     adjlo = lo - 1
     adjhi = hi - 1
     getlen = hi - lo + 1
@@ -35,12 +35,12 @@ function get(ga::Garray{T}, lo::Int64, hi::Int64; buffer = Vector{T}(hi - lo + 1
         (Ptr{Void}, Int64, Int64, Ptr{Void}),
         ga.ahandle[], adjlo, adjhi, buffer)
     if r != 0
-        error("Garray get failed")
+        error("GArray get failed")
     end
     return buffer
 end
 
-function put!(ga::Garray{T}, lo::Int64, hi::Int64, buf::Array{T}) where T
+function put!(ga::GArray{T}, lo::Int64, hi::Int64, buf::Array{T}) where T
     adjlo = lo - 1
     adjhi = hi - 1
     putlen = hi - lo + 1
@@ -48,11 +48,11 @@ function put!(ga::Garray{T}, lo::Int64, hi::Int64, buf::Array{T}) where T
     r = ccall((:garray_put, libgasp), Cint, (Ptr{Void}, Int64, Int64,
               Ptr{Void}), ga.ahandle[], adjlo, adjhi, buf)
     if r != 0
-        error("Garray put failed")
+        error("GArray put failed")
     end
 end
 
-function distribution(ga::Garray, rank::Int64)
+function distribution(ga::GArray, rank::Int64)
     lo = Ref{Int64}(0)
     hi = Ref{Int64}(0)
     r = ccall((:garray_distribution, libgasp), Cint,
@@ -66,7 +66,7 @@ function distribution(ga::Garray, rank::Int64)
     return llo, lhi
 end
 
-function access(ga::Garray{T}, lo::Int64, hi::Int64) where T
+function access(ga::GArray{T}, lo::Int64, hi::Int64) where T
     p = Ref{Ptr{Void}}()
     r = ccall((:garray_access, libgasp), Cint,
         (Ptr{Void}, Int64, Int64, Ptr{Ptr{Void}}),
@@ -79,9 +79,9 @@ function access(ga::Garray{T}, lo::Int64, hi::Int64) where T
 
     return ga.access_arr
 end
-access(ga::Garray) = access(ga, distribution(ga, grank())...)
+access(ga::GArray) = access(ga, distribution(ga, grank())...)
 
-function flush(ga::Garray{T}) where T
+function flush(ga::GArray{T}) where T
     ccall((:garray_flush, libgasp), Void, (Ptr{Void},), ga.ahandle[])
     ga.access_arr = T[]
     return nothing
