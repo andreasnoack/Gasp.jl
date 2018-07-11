@@ -15,31 +15,26 @@ export Garray, GarrayMemoryHandle, Dtree, Dlog,
 const libgasp = joinpath(dirname(@__FILE__), "..", "deps", "gasp",
         "libgasp.$(Libdl.dlext)")
 
-const ghandle = [C_NULL]
-num_garrays = 0
-exiting = false
+const ghandle = Ref{Ptr{Void}}(C_NULL)
 
 @noinline function init_gasp()
      global ghandle
      ccall((:gasp_init, libgasp), Int64, (Cint, Ptr{Ptr{UInt8}}, Ptr{Void}),
-          length(ARGS), ARGS, pointer(ghandle, 1))
+          length(ARGS), ARGS, ghandle)
 end
 
 function __init__()
     # Work around openmpi not being loadable in a private namespace
     Libdl.dlopen(libgasp, Libdl.RTLD_GLOBAL)
     init_gasp()
-    atexit() do
-        global exiting
-        exiting = true
-    end
+    atexit(shutdown)
 end
 
 # uncomment for static builds
 #__init__()
 
-function __shutdown__()
-    ccall((:gasp_shutdown, libgasp), Void, (Ptr{Void},), ghandle[1])
+function shutdown()
+    ccall((:gasp_shutdown, libgasp), Void, (Ptr{Void},), ghandle[])
 end
 
 @inline ngranks() = ccall((:gasp_nranks, libgasp), Int64, ())

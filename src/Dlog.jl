@@ -1,4 +1,4 @@
-type Dlog
+mutable struct Dlog
     fd::Cint
     started_at::UInt64
     start_ofs::Csize_t

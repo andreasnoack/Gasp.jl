@@ -1,7 +1,7 @@
 const fan_out = 512
 const drain_rate = 0.5
 
-type Dtree
+mutable struct Dtree
     handle::Array{Ptr{Void}}
 
     function Dtree(fan_out::Int, num_work_items::Int64,
@@ -14,7 +14,7 @@ type Dtree
         r = ccall((:dtree_create, libgasp), Cint,
                 (Ptr{Void}, Cint, Cint, Cint, Cint, Cdouble, Cint, Ptr{Void},
                 Cdouble, Cdouble, Cshort, Ptr{Void}, Ptr{Int64}),
-                ghandle[1], fan_out, num_work_items, can_parent, parents_work,
+                ghandle[], fan_out, num_work_items, can_parent, parents_work,
                 rank_mul, nthreads(), cthrid, first, rest, min_dist,
                 pointer(d.handle), pointer(p, 1))
         if r != 0
